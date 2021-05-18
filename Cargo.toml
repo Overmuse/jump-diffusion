@@ -15,7 +15,7 @@ dotenv = "0.15.0"
 futures = "0.3.15"
 itertools = "0.10.0"
 kafka-settings = {git = "ssh://git@github.com/Overmuse/kafka-settings.git", tag = "v0.3.1" }
-polygon = { git = "ssh://git@github.com/Overmuse/polygon", tag = "v0.8.4", default-features = false, features = ["rest"] }
+polygon = { git = "ssh://git@github.com/Overmuse/polygon", tag = "v0.9.1", default-features = false, features = ["rest"] }
 rdkafka = { version = "0.26.0", features = ["ssl-vendored"] }
 rust_decimal = "1.13.0"
 serde = "1.0.126"

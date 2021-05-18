@@ -864,8 +864,8 @@ checksum = "3831453b3449ceb48b6d9c7ad7c96d5ea673e9b470a1dc578c2ce6521230884c"
 
 [[package]]
 name = "polygon"
-version = "0.8.4"
-source = "git+ssh://git@github.com/Overmuse/polygon?tag=v0.8.4#e384e862312fa125194298d2fe12bfccb7c18b7b"
+version = "0.9.1"
+source = "git+ssh://git@github.com/Overmuse/polygon?tag=v0.9.1#03d0ae986c3673f699936cd5552de908757f7621"
 dependencies = [
  "chrono",
  "futures",
