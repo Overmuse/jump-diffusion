@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
-use chrono::{NaiveDate, Utc};
+use chrono::{TimeZone, Utc};
 use kafka_settings::producer;
-use polygon::rest::Client;
+use polygon::rest::{Client, GetPreviousClose};
 use rdkafka::producer::FutureRecord;
 
 mod aggregates;
@@ -55,7 +55,17 @@ async fn main() -> Result<()> {
     let producer = producer(&settings.kafka)?;
     let client =
         Client::from_env().context("Failed to create client from environment variables")?;
-    let data = data::download_data(&client, &tickers, NaiveDate::from_ymd(2021, 5, 18))
+    // Use `GetPreviousClose` in order to find the previous close *date*
+    let res = client
+        .send(GetPreviousClose {
+            ticker: &tickers[0],
+            unadjusted: false,
+        })
+        .await
+        .context("Failed to get previous close")?;
+
+    let datetime = Utc.timestamp(res.results[0].t as i64 / 1000, 0);
+    let data = data::download_data(&client, &tickers, datetime.naive_utc().date())
         .await
         .context("Failed to download data")?;
     let (log_returns, current_prices): (Vec<_>, Vec<_>) = data
