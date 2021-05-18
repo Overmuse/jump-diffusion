@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
     let producer = producer(&settings.kafka)?;
     let client =
         Client::from_env().context("Failed to create client from environment variables")?;
-    let data = data::download_data(&client, &tickers, NaiveDate::from_ymd(2021, 5, 17))
+    let data = data::download_data(&client, &tickers, NaiveDate::from_ymd(2021, 5, 18))
         .await
         .context("Failed to download data")?;
     let (log_returns, current_prices): (Vec<_>, Vec<_>) = data
