@@ -34,10 +34,7 @@ pub async fn download_data(
             (Ok(p), Ok(s)) => Some((p, s)),
             _ => None,
         })
-        .filter_map(|(past, snap)| match past.results {
-            Some(res) => Some((res, snap.ticker.day)),
-            _ => None,
-        })
+        .filter_map(|(past, snap)| past.results.map(|res| (res, snap.ticker.day)))
         .map(|(yesterday, today)| {
             let prices = yesterday
                 .iter()

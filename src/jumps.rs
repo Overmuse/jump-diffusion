@@ -11,7 +11,7 @@ pub fn find_jump(y: &[f64]) -> (usize, f64) {
     y.iter()
         .enumerate()
         .fold((0, y[0]), |(idx_max, val_max), (idx, val)| {
-            if &val_max.abs() > &val.abs() {
+            if val_max.abs() > val.abs() {
                 (idx_max, val_max)
             } else {
                 (idx, *val)
