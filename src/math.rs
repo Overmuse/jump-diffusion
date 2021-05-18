@@ -2,15 +2,15 @@ use itertools::Itertools;
 use statrs::function::gamma::gamma;
 use std::f64::consts::{FRAC_PI_2, PI};
 
-pub fn mu(x: f64) -> f64 {
+fn mu(x: f64) -> f64 {
     f64::powf(2.0, x / 2.0) * gamma((x + 1.0) / 2.0) / gamma(0.5)
 }
 
-pub fn realized_variance(y: &[f64]) -> f64 {
+fn realized_variance(y: &[f64]) -> f64 {
     y.iter().map(|&x| f64::powi(x, 2)).sum()
 }
 
-pub fn bipower_variation(y: &[f64]) -> f64 {
+fn bipower_variation(y: &[f64]) -> f64 {
     y.iter()
         .tuple_windows()
         .map(|(&a, &b)| f64::abs(a) * f64::abs(b))
@@ -18,7 +18,7 @@ pub fn bipower_variation(y: &[f64]) -> f64 {
         * f64::powi(mu(1.0), -2)
 }
 
-pub fn tripower_quarticity(y: &[f64]) -> f64 {
+fn tripower_quarticity(y: &[f64]) -> f64 {
     let len = y.len() as f64;
     y.iter()
         .tuple_windows::<(_, _, _)>()
