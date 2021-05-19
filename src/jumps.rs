@@ -3,7 +3,7 @@ use statrs::distribution::{InverseCDF, Normal};
 
 pub fn jump_detected(y: &[f64]) -> bool {
     let z = zscore(y);
-    let d = Normal::new(0.0, 1.0).unwrap();
+    let d = Normal::new(0.0, 1.0).expect("Standard normal");
     z.abs() > d.inverse_cdf(0.999)
 }
 

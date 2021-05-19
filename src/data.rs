@@ -3,6 +3,7 @@ use chrono::NaiveDate;
 use itertools::Itertools;
 use polygon::rest::{Client, GetAggregate, GetTickerSnapshot, SortOrder, Timespan};
 use rust_decimal::prelude::*;
+use tracing::debug;
 
 use crate::aggregates::JumpDiffusionAggregate;
 
@@ -17,6 +18,7 @@ pub async fn download_data(
     tickers: &[String],
     date: NaiveDate,
 ) -> Result<Vec<Data>> {
+    debug!("Beginning data download");
     let past_day = tickers.iter().map(|ticker| {
         GetAggregate::new(&ticker, date, date)
             .multiplier(1)
