@@ -27,6 +27,5 @@ RUN --mount=type=ssh cargo build --release --bin jump-diffusion
 FROM debian:buster-slim as runtime
 WORKDIR jump-diffusion
 COPY --from=builder /jump-diffusion/target/release/jump-diffusion /usr/local/bin
-ENV RUST_LOG=jump_diffusion=debug
 RUN apt-get update && apt-get -y install ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/local/bin/jump-diffusion"]
