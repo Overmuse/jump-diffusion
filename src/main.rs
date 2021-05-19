@@ -3,6 +3,9 @@ use chrono::{TimeZone, Utc};
 use kafka_settings::producer;
 use polygon::rest::{Client, GetPreviousClose};
 use rdkafka::producer::FutureRecord;
+use tracing::{debug, error, info, subscriber::set_global_default};
+use tracing_log::LogTracer;
+use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 mod aggregates;
 mod data;
@@ -49,13 +52,20 @@ fn choose_stocks(data: &[Vec<f64>], n: usize) -> Vec<Evaluation> {
 #[tokio::main]
 async fn main() -> Result<()> {
     let _ = dotenv::dotenv();
-    let settings = Settings::new()?;
+    let subscriber = FmtSubscriber::builder()
+        .with_env_filter(EnvFilter::from_default_env())
+        .finish();
+    set_global_default(subscriber).expect("Failed to set subscriber");
+    LogTracer::init().expect("Failed to set logger");
+    info!("Starting jump-diffusion");
+    let settings = Settings::new().context("Failed to load settings")?;
     let tickers = settings.app.tickers;
     let cash = settings.app.initial_equity;
-    let producer = producer(&settings.kafka)?;
+    let producer = producer(&settings.kafka).context("Failed to initialize Kafka producer")?;
     let client =
         Client::from_env().context("Failed to create client from environment variables")?;
     // Use `GetPreviousClose` in order to find the previous close *date*
+    debug!("Fetching previous close date");
     let res = client
         .send(GetPreviousClose {
             ticker: &tickers[0],
@@ -65,6 +75,7 @@ async fn main() -> Result<()> {
         .context("Failed to get previous close")?;
 
     let datetime = Utc.timestamp(res.results[0].t as i64 / 1000, 0);
+    debug!("Downloading data");
     let data = data::download_data(&client, &tickers, datetime.naive_utc().date())
         .await
         .context("Failed to download data")?;
@@ -73,12 +84,16 @@ async fn main() -> Result<()> {
         .map(|x| (x.log_returns, x.current_price))
         .unzip();
     let stocks = choose_stocks(&log_returns, settings.app.num_stocks);
+    debug!(
+        "Stocks chosen: {:?}",
+        stocks.iter().map(|x| &tickers[x.idx]).collect::<Vec<_>>()
+    );
     let sum_z: f64 = stocks.iter().map(|x| x.z_score.abs()).sum();
     for stock in stocks {
         let qty = if stock.last_ret.is_sign_positive() {
-            (cash * stock.z_score.abs() / sum_z) / current_prices[stock.idx]
-        } else {
             -(cash * stock.z_score.abs() / sum_z) / current_prices[stock.idx]
+        } else {
+            (cash * stock.z_score.abs() / sum_z) / current_prices[stock.idx]
         };
         let ticker = tickers[stock.idx].clone();
         let intent = PositionIntent {
@@ -94,9 +109,13 @@ async fn main() -> Result<()> {
         let res = producer
             .send(record, std::time::Duration::from_secs(0))
             .await;
-        if let Err((e, _)) = res {
-            panic!("{}", e)
+        if let Err((e, m)) = res {
+            error!(
+                "Failed to send position intent to kafka.\nError: {:?}\nMessage: {:?}",
+                e, m
+            );
         }
     }
+    info!("All done");
     Ok(())
 }
