@@ -6,6 +6,7 @@ use rdkafka::producer::FutureRecord;
 use tracing::{debug, error, info, subscriber::set_global_default};
 use tracing_log::LogTracer;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
+use uuid::Uuid;
 
 mod aggregates;
 mod data;
@@ -92,6 +93,7 @@ async fn main() -> Result<()> {
             (cash * stock.z_score.abs() / sum_z) / stock.price
         };
         let intent = PositionIntent {
+            id: Uuid::new_v4().to_string(),
             strategy: "jump-diffusion".into(),
             timestamp: Utc::now(),
             qty: qty.floor() as i32,
