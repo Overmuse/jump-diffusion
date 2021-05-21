@@ -55,7 +55,7 @@ pub async fn download_data(
     debug!("Beginning data download");
     stream::iter(tickers)
         .map(|ticker| download_ticker_data(client, ticker, &date))
-        .buffered(50)
+        .buffered(100)
         .collect()
         .await
 }

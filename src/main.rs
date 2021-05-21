@@ -82,7 +82,16 @@ async fn main() -> Result<()> {
     debug!("Downloading data");
     let data = download_data(&client, &tickers, datetime.naive_utc().date()).await;
 
-    let data: Vec<Data> = data.into_iter().filter_map(|x| x.ok()).collect();
+    let data: Vec<Data> = data
+        .into_iter()
+        .filter_map(|x| match x {
+            Ok(x) => Some(x),
+            Err(e) => {
+                error!("{}", e);
+                None
+            }
+        })
+        .collect();
     let stocks = choose_stocks(&data, settings.app.num_stocks);
     debug!("Stocks: {:#?}", stocks);
     let sum_z: f64 = stocks.iter().map(|x| x.z_score.abs()).sum();
