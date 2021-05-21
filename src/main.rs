@@ -14,6 +14,7 @@ mod math;
 mod positions;
 mod settings;
 
+use data::{download_data, Data};
 use jumps::{find_jump, jump_detected};
 use math::zscore;
 use positions::PositionIntent;
@@ -21,22 +22,24 @@ use settings::Settings;
 
 #[derive(Debug, Clone)]
 struct Evaluation {
-    idx: usize,
+    ticker: String,
+    price: f64,
     z_score: f64,
     last_ret: f64,
 }
 
-fn choose_stocks(data: &[Vec<f64>], n: usize) -> Vec<Evaluation> {
-    let len = data.first().unwrap().iter().count();
+fn choose_stocks(data: &[Data], n: usize) -> Vec<Evaluation> {
     let mut zscores: Vec<Evaluation> = data
         .iter()
-        .enumerate()
-        .filter_map(|(i, col)| {
-            let (idx, _) = find_jump(&col);
-            let z = zscore(&col);
-            if jump_detected(&col) && idx == (len - 1) {
+        .filter_map(|data| {
+            let col = &data.log_returns;
+            let len = col.len();
+            let (idx, _) = find_jump(col);
+            let z = zscore(col);
+            if jump_detected(col) && idx == (len - 1) {
                 Some(Evaluation {
-                    idx: i,
+                    ticker: data.ticker.clone(),
+                    price: data.current_price,
                     z_score: z,
                     last_ret: *col.last().unwrap(),
                 })
@@ -76,35 +79,31 @@ async fn main() -> Result<()> {
 
     let datetime = Utc.timestamp(res.results[0].t as i64 / 1000, 0);
     debug!("Downloading data");
-    let data = data::download_data(&client, &tickers, datetime.naive_utc().date())
-        .await
-        .context("Failed to download data")?;
-    let (log_returns, current_prices): (Vec<_>, Vec<_>) = data
-        .into_iter()
-        .map(|x| (x.log_returns, x.current_price))
-        .unzip();
-    let stocks = choose_stocks(&log_returns, settings.app.num_stocks);
+    let data = download_data(&client, &tickers, datetime.naive_utc().date()).await;
+
+    let data: Vec<Data> = data.into_iter().filter_map(|x| x.ok()).collect();
+    let stocks = choose_stocks(&data, settings.app.num_stocks);
+    debug!("Stocks: {:?}", stocks);
     debug!(
         "Stocks chosen: {:?}",
-        stocks.iter().map(|x| &tickers[x.idx]).collect::<Vec<_>>()
+        stocks.iter().map(|x| &x.ticker).collect::<Vec<_>>()
     );
     let sum_z: f64 = stocks.iter().map(|x| x.z_score.abs()).sum();
     for stock in stocks {
         let qty = if stock.last_ret.is_sign_positive() {
-            -(cash * stock.z_score.abs() / sum_z) / current_prices[stock.idx]
+            -(cash * stock.z_score.abs() / sum_z) / stock.price
         } else {
-            (cash * stock.z_score.abs() / sum_z) / current_prices[stock.idx]
+            (cash * stock.z_score.abs() / sum_z) / stock.price
         };
-        let ticker = tickers[stock.idx].clone();
         let intent = PositionIntent {
             strategy: "jump-diffusion".into(),
             timestamp: Utc::now(),
             qty: qty.floor() as i32,
-            ticker: ticker.clone(),
+            ticker: stock.ticker.clone(),
         };
         let payload = serde_json::to_string(&intent)?;
         let record = FutureRecord::to("position-intents")
-            .key(&ticker)
+            .key(&stock.ticker)
             .payload(&payload);
         let res = producer
             .send(record, std::time::Duration::from_secs(0))
