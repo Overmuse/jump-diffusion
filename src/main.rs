@@ -83,11 +83,7 @@ async fn main() -> Result<()> {
 
     let data: Vec<Data> = data.into_iter().filter_map(|x| x.ok()).collect();
     let stocks = choose_stocks(&data, settings.app.num_stocks);
-    debug!("Stocks: {:?}", stocks);
-    debug!(
-        "Stocks chosen: {:?}",
-        stocks.iter().map(|x| &x.ticker).collect::<Vec<_>>()
-    );
+    debug!("Stocks: {:#?}", stocks);
     let sum_z: f64 = stocks.iter().map(|x| x.z_score.abs()).sum();
     for stock in stocks {
         let qty = if stock.last_ret.is_sign_positive() {
