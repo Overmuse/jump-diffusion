@@ -8,4 +8,5 @@ pub struct PositionIntent {
     pub timestamp: DateTime<Utc>,
     pub ticker: String,
     pub qty: i32,
+    pub limit_price: Option<f64>,
 }

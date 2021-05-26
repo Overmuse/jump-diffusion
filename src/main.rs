@@ -96,10 +96,16 @@ async fn main() -> Result<()> {
     debug!("Stocks: {:#?}", stocks);
     let sum_z: f64 = stocks.iter().map(|x| x.z_score.abs()).sum();
     for stock in stocks {
-        let qty = if stock.last_ret.is_sign_positive() {
-            -(cash * stock.z_score.abs() / sum_z) / stock.price
+        let (qty, limit_price) = if stock.last_ret.is_sign_positive() {
+            (
+                -(cash * stock.z_score.abs() / sum_z) / stock.price,
+                Some(stock.price * 0.95),
+            )
         } else {
-            (cash * stock.z_score.abs() / sum_z) / stock.price
+            (
+                (cash * stock.z_score.abs() / sum_z) / stock.price,
+                Some(stock.price * 1.05),
+            )
         };
         let intent = PositionIntent {
             id: Uuid::new_v4().to_string(),
@@ -107,6 +113,7 @@ async fn main() -> Result<()> {
             timestamp: Utc::now(),
             qty: qty.floor() as i32,
             ticker: stock.ticker.clone(),
+            limit_price,
         };
         let payload = serde_json::to_string(&intent)?;
         let record = FutureRecord::to("position-intents")
