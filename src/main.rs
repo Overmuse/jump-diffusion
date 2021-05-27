@@ -99,12 +99,12 @@ async fn main() -> Result<()> {
         let (qty, limit_price) = if stock.last_ret.is_sign_positive() {
             (
                 -(cash * stock.z_score.abs() / sum_z) / stock.price,
-                Some(stock.price * 0.95),
+                Some(stock.price * 0.995),
             )
         } else {
             (
                 (cash * stock.z_score.abs() / sum_z) / stock.price,
-                Some(stock.price * 1.05),
+                Some(stock.price * 1.005),
             )
         };
         let intent = PositionIntent {
