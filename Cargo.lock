@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "jump-diffusion"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -513,6 +513,7 @@ dependencies = [
  "itertools",
  "kafka-settings",
  "polygon",
+ "position-intents",
  "rdkafka",
  "rust_decimal",
  "serde 1.0.126",
@@ -522,7 +523,6 @@ dependencies = [
  "tracing",
  "tracing-log",
  "tracing-subscriber",
- "uuid",
 ]
 
 [[package]]
@@ -908,6 +908,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "position-intents"
+version = "0.1.0"
+source = "git+ssh://git@github.com/Overmuse/position-intents?tag=v0.1.0#b3330541bf18b4d8257aab5cd905606406702ab7"
+dependencies = [
+ "chrono",
+ "rust_decimal",
+ "serde 1.0.126",
+ "serde_json",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
 name = "ppv-lite86"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1166,9 +1179,9 @@ checksum = "3e52c148ef37f8c375d49d5a73aa70713125b7f19095948a923f80afdeb22ec2"
 
 [[package]]
 name = "rust_decimal"
-version = "1.13.0"
+version = "1.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72e80c4f9a71b5949e283189c3c3ae35fedddecfe112e75c9d58751c36605b62"
+checksum = "d52f6513cf330c84095570b1f3ac073d718a50541c8392a98eaac9c6333324bf"
 dependencies = [
  "arrayvec",
  "num-traits 0.2.14",
@@ -1360,18 +1373,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.24"
+version = "1.0.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0f4a65597094d4483ddaed134f409b2cb7c1beccf25201a9f73c719254fa98e"
+checksum = "fa6f76457f59514c7eeb4e59d891395fab0b2fd1d40723ae737d64153392e9c6"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.24"
+version = "1.0.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7765189610d8241a44529806d6fd1f2e0a08734313a35d5b3a556f92b381f3c0"
+checksum = "8a36768c0fbf1bb15eca10defa29526bda730a2376c2ab4393ccfa16fb1a318d"
 dependencies = [
  "proc-macro2",
  "quote",

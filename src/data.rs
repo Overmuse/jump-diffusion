@@ -12,7 +12,7 @@ use crate::aggregates::JumpDiffusionAggregate;
 pub struct Data {
     pub ticker: String,
     pub log_returns: Vec<f64>,
-    pub current_price: f64,
+    pub current_price: Decimal,
 }
 
 async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDate) -> Result<Data> {
@@ -31,16 +31,16 @@ async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDat
         let prices = res
             .iter()
             .filter(|x| x.is_open())
-            .map(|x| x.c.to_f64().unwrap())
-            .chain(std::iter::once(today.o.to_f64().unwrap()));
+            .map(|x| x.c)
+            .chain(std::iter::once(today.o));
         let log_returns = prices
             .tuple_windows()
-            .map(|(p1, p2)| f64::ln(p2) - f64::ln(p1))
+            .map(|(p1, p2)| (p2.ln() - p1.ln()).to_f64().unwrap())
             .collect();
         Ok(Data {
             ticker: ticker.to_string(),
             log_returns,
-            current_price: today.c.to_f64().unwrap(),
+            current_price: today.c,
         })
     } else {
         Err(anyhow!("Missing data"))

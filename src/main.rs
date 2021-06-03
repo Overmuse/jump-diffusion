@@ -2,29 +2,28 @@ use anyhow::{Context, Result};
 use chrono::{TimeZone, Utc};
 use kafka_settings::producer;
 use polygon::rest::{Client, GetPreviousClose};
+use position_intents::{AmountSpec, PositionIntent};
 use rdkafka::producer::FutureRecord;
+use rust_decimal::prelude::*;
 use tracing::{debug, error, info, subscriber::set_global_default};
 use tracing_log::LogTracer;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
-use uuid::Uuid;
 
 mod aggregates;
 mod data;
 mod jumps;
 mod math;
-mod positions;
 mod settings;
 
 use data::{download_data, Data};
 use jumps::{find_jump, jump_detected};
 use math::zscore;
-use positions::PositionIntent;
 use settings::Settings;
 
 #[derive(Debug, Clone)]
 struct Evaluation {
     ticker: String,
-    price: f64,
+    price: Decimal,
     z_score: f64,
     last_ret: f64,
 }
@@ -33,7 +32,7 @@ fn choose_stocks(data: &[Data], n: usize) -> Vec<Evaluation> {
     let mut zscores: Vec<Evaluation> = data
         .iter()
         .filter_map(|data| {
-            let col = &data.log_returns;
+            let col = data.log_returns.as_slice();
             let len = col.len();
             let (idx, _) = find_jump(col);
             let z = zscore(col);
@@ -98,23 +97,21 @@ async fn main() -> Result<()> {
     for stock in stocks {
         let (qty, limit_price) = if stock.last_ret.is_sign_positive() {
             (
-                -(cash * stock.z_score.abs() / sum_z) / stock.price,
-                Some(stock.price * 0.995),
+                -(cash * Decimal::from_f64(stock.z_score.abs() / sum_z).unwrap()) / stock.price,
+                stock.price * Decimal::new(995, 3),
             )
         } else {
             (
-                (cash * stock.z_score.abs() / sum_z) / stock.price,
-                Some(stock.price * 1.005),
+                (cash * Decimal::from_f64(stock.z_score.abs() / sum_z).unwrap()) / stock.price,
+                stock.price * Decimal::new(1005, 3),
             )
         };
-        let intent = PositionIntent {
-            id: Uuid::new_v4().to_string(),
-            strategy: "jump-diffusion".into(),
-            timestamp: Utc::now(),
-            qty: qty.floor() as i32,
-            ticker: stock.ticker.clone(),
-            limit_price,
-        };
+        let intent = PositionIntent::new(
+            "jump-diffusion",
+            stock.ticker.clone(),
+            AmountSpec::Shares(qty.floor()),
+        )
+        .limit_price(limit_price);
         let payload = serde_json::to_string(&intent)?;
         let record = FutureRecord::to("position-intents")
             .key(&stock.ticker)
