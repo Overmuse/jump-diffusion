@@ -1,5 +1,6 @@
 use config::{Config, ConfigError, Environment};
 use kafka_settings::KafkaSettings;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Deserializer};
 
 #[derive(Debug, Deserialize)]
@@ -11,7 +12,7 @@ pub struct Settings {
 #[derive(Debug, Deserialize)]
 pub struct AppSettings {
     pub num_stocks: usize,
-    pub initial_equity: f64,
+    pub initial_equity: Decimal,
     #[serde(deserialize_with = "vec_from_str")]
     pub tickers: Vec<String>,
 }
