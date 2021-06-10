@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use chrono::{TimeZone, Utc};
+use chrono::{Duration, TimeZone, Utc};
 use kafka_settings::producer;
 use polygon::rest::{Client, GetPreviousClose};
 use position_intents::{AmountSpec, PositionIntent};
@@ -95,35 +95,42 @@ async fn main() -> Result<()> {
     debug!("Stocks: {:#?}", stocks);
     let sum_z: f64 = stocks.iter().map(|x| x.z_score.abs()).sum();
     for stock in stocks {
-        let (qty, limit_price) = if stock.last_ret.is_sign_positive() {
+        let (dollars, limit_price) = if stock.last_ret.is_sign_positive() {
             (
-                -(cash * Decimal::from_f64(stock.z_score.abs() / sum_z).unwrap()) / stock.price,
+                -(cash * Decimal::from_f64(stock.z_score.abs() / sum_z).unwrap()),
                 stock.price * Decimal::new(995, 3),
             )
         } else {
             (
-                (cash * Decimal::from_f64(stock.z_score.abs() / sum_z).unwrap()) / stock.price,
+                (cash * Decimal::from_f64(stock.z_score.abs() / sum_z).unwrap()),
                 stock.price * Decimal::new(1005, 3),
             )
         };
         let intent = PositionIntent::new(
             "jump-diffusion",
             stock.ticker.clone(),
-            AmountSpec::Shares(qty.floor()),
+            AmountSpec::Dollars(dollars),
         )
-        .limit_price(limit_price);
-        let payload = serde_json::to_string(&intent)?;
-        let record = FutureRecord::to("position-intents")
-            .key(&stock.ticker)
-            .payload(&payload);
-        let res = producer
-            .send(record, std::time::Duration::from_secs(0))
-            .await;
-        if let Err((e, m)) = res {
-            error!(
-                "Failed to send position intent to kafka.\nError: {:?}\nMessage: {:?}",
-                e, m
-            );
+        .limit_price(limit_price)
+        .decision_price(stock.price)
+        .before(Utc::now() + Duration::minutes(30));
+        let close_intent =
+            PositionIntent::new("jump-diffusion", stock.ticker.clone(), AmountSpec::Zero)
+                .after(Utc::today().and_hms(15, 30, 0));
+        for i in vec![intent, close_intent] {
+            let payload = serde_json::to_string(&i)?;
+            let record = FutureRecord::to("position-intents")
+                .key(&stock.ticker)
+                .payload(&payload);
+            let res = producer
+                .send(record, std::time::Duration::from_secs(0))
+                .await;
+            if let Err((e, m)) = res {
+                error!(
+                    "Failed to send position intent to kafka.\nError: {:?}\nMessage: {:?}",
+                    e, m
+                );
+            }
         }
     }
     info!("All done");
