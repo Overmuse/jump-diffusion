@@ -909,8 +909,8 @@ dependencies = [
 
 [[package]]
 name = "position-intents"
-version = "0.1.0"
-source = "git+ssh://git@github.com/Overmuse/position-intents?tag=v0.1.0#b3330541bf18b4d8257aab5cd905606406702ab7"
+version = "0.2.0"
+source = "git+ssh://git@github.com/Overmuse/position-intents?tag=v0.2.0#908c06d4cba62b013067a79088bed21de01b1098"
 dependencies = [
  "chrono",
  "rust_decimal",
