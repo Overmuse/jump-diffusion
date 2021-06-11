@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
-use chrono::{Duration, TimeZone, Utc};
+use chrono::{Duration, Local, NaiveTime, TimeZone, Utc};
+use chrono_tz::US::Eastern;
 use kafka_settings::producer;
 use polygon::rest::{Client, GetPreviousClose};
 use position_intents::{AmountSpec, PositionIntent};
@@ -114,9 +115,14 @@ async fn main() -> Result<()> {
         .limit_price(limit_price)
         .decision_price(stock.price)
         .before(Utc::now() + Duration::minutes(30));
+        let close_time = Eastern
+            .from_local_date(&Local::today().naive_local())
+            .and_time(NaiveTime::from_hms(11, 30, 0))
+            .unwrap()
+            .with_timezone(&Utc);
         let close_intent =
             PositionIntent::new("jump-diffusion", stock.ticker.clone(), AmountSpec::Zero)
-                .after(Utc::today().and_hms(15, 30, 0));
+                .after(close_time);
         for i in vec![intent, close_intent] {
             let payload = serde_json::to_string(&i)?;
             let record = FutureRecord::to("position-intents")
