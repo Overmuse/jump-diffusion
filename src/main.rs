@@ -107,22 +107,24 @@ async fn main() -> Result<()> {
                 stock.price * Decimal::new(1005, 3),
             )
         };
-        let intent = PositionIntent::new(
+        let intent = PositionIntent::builder(
             "jump-diffusion",
             stock.ticker.clone(),
             AmountSpec::Dollars(dollars),
         )
         .limit_price(limit_price)
         .decision_price(stock.price)
-        .before(Utc::now() + Duration::minutes(30));
+        .before(Utc::now() + Duration::minutes(30))
+        .build()?;
         let close_time = Eastern
             .from_local_date(&Local::today().naive_local())
             .and_time(NaiveTime::from_hms(11, 30, 0))
             .unwrap()
             .with_timezone(&Utc);
         let close_intent =
-            PositionIntent::new("jump-diffusion", stock.ticker.clone(), AmountSpec::Zero)
-                .after(close_time);
+            PositionIntent::builder("jump-diffusion", stock.ticker.clone(), AmountSpec::Zero)
+                .after(close_time)
+                .build()?;
         for i in vec![intent, close_intent] {
             let payload = serde_json::to_string(&i)?;
             let record = FutureRecord::to("position-intents")

@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "jump-diffusion"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -909,8 +909,8 @@ dependencies = [
 
 [[package]]
 name = "position-intents"
-version = "0.2.0"
-source = "git+ssh://git@github.com/Overmuse/position-intents?tag=v0.2.0#908c06d4cba62b013067a79088bed21de01b1098"
+version = "0.5.0"
+source = "git+ssh://git@github.com/Overmuse/position-intents?tag=v0.5.0#8d25f7f0d234409a4cb2ebadf4a72869b14c9cb3"
 dependencies = [
  "chrono",
  "rust_decimal",
@@ -1622,6 +1622,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
  "getrandom 0.2.3",
+ "serde 1.0.126",
 ]
 
 [[package]]
