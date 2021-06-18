@@ -7,9 +7,7 @@ use position_intents::{AmountSpec, PositionIntent};
 use rdkafka::producer::FutureRecord;
 use rust_decimal::prelude::*;
 use tracing::{debug, error, info, subscriber::set_global_default};
-use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
-use tracing_log::LogTracer;
-use tracing_subscriber::{layer::SubscriberExt, Registry};
+use tracing_subscriber::EnvFilter;
 
 mod aggregates;
 mod data;
@@ -57,12 +55,11 @@ fn choose_stocks(data: &[Data], n: usize) -> Vec<Evaluation> {
 #[tokio::main]
 async fn main() -> Result<()> {
     let _ = dotenv::dotenv();
-    let formatting_layer = BunyanFormattingLayer::new("jump-diffusion".into(), std::io::stdout);
-    let subscriber = Registry::default()
-        .with(JsonStorageLayer)
-        .with(formatting_layer);
+    let subscriber = tracing_subscriber::fmt()
+        .json()
+        .with_env_filter(EnvFilter::from_default_env())
+        .finish();
     set_global_default(subscriber).expect("Failed to set subscriber");
-    LogTracer::init().expect("Failed to set logger");
     info!("Starting jump-diffusion");
     let settings = Settings::new().context("Failed to load settings")?;
     let tickers = settings.app.tickers;
