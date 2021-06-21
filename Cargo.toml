@@ -1,6 +1,6 @@
 [package]
 name = "jump-diffusion"
-version = "0.6.2"
+version = "0.7.0"
 authors = ["Sebastian Rollen <seb@overmu.se>"]
 edition = "2018"
 
@@ -15,10 +15,10 @@ dotenv = "0.15.0"
 futures = "0.3.15"
 itertools = "0.10.0"
 kafka-settings = {git = "ssh://git@github.com/Overmuse/kafka-settings.git", tag = "v0.3.1" }
-position-intents = { git = "ssh://git@github.com/Overmuse/position-intents", tag = "v0.5.0" }
+position-intents = { git = "ssh://git@github.com/Overmuse/position-intents", tag = "v0.6.0" }
 polygon = { git = "ssh://git@github.com/Overmuse/polygon", tag = "v0.9.1", default-features = false, features = ["rest"] }
 rdkafka = { version = "0.26.0", features = ["ssl-vendored"] }
-rust_decimal = { version = "1.14.1", features = ["maths"] }
+rust_decimal = { version = "1.14.3", features = ["maths"] }
 serde = "1.0.126"
 serde_json = "1.0.64"
 statrs = "0.13.0"
