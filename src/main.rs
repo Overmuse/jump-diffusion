@@ -68,6 +68,7 @@ async fn main() -> Result<()> {
     let client =
         Client::from_env().context("Failed to create client from environment variables")?;
     // Use `GetPreviousClose` in order to find the previous close *date*
+    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
     debug!("Fetching previous close date");
     let res = client
         .send(GetPreviousClose {
