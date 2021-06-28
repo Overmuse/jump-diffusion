@@ -68,7 +68,6 @@ async fn main() -> Result<()> {
     let client =
         Client::from_env().context("Failed to create client from environment variables")?;
     // Use `GetPreviousClose` in order to find the previous close *date*
-    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
     debug!("Fetching previous close date");
     let res = client
         .send(GetPreviousClose {
@@ -96,7 +95,7 @@ async fn main() -> Result<()> {
     debug!("Stocks: {:#?}", stocks);
     let sum_z: f64 = stocks.iter().map(|x| x.z_score.abs()).sum();
     for stock in stocks {
-        let (dollars, _limit_price) = if stock.last_ret.is_sign_positive() {
+        let (dollars, limit_price) = if stock.last_ret.is_sign_positive() {
             (
                 -(cash * Decimal::from_f64(stock.z_score.abs() / sum_z).unwrap()),
                 stock.price * Decimal::new(995, 3),
@@ -113,6 +112,8 @@ async fn main() -> Result<()> {
             AmountSpec::Dollars(dollars),
         )
         .before(Utc::now() + Duration::minutes(30))
+        .limit_price(limit_price)
+        .decision_price(stock.price)
         .build()?;
         let close_time = Eastern
             .from_local_date(&Local::today().naive_local())
