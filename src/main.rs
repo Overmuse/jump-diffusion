@@ -92,7 +92,6 @@ async fn main() -> Result<()> {
         })
         .collect();
     let stocks = choose_stocks(&data, settings.app.num_stocks);
-    debug!("Stocks: {:#?}", stocks);
     let sum_z: f64 = stocks.iter().map(|x| x.z_score.abs()).sum();
     for stock in stocks {
         let (dollars, limit_price) = if stock.last_ret.is_sign_positive() {
@@ -106,6 +105,15 @@ async fn main() -> Result<()> {
                 stock.price * Decimal::new(1005, 3),
             )
         };
+        debug!(
+            ticker = %stock.ticker,
+            z_score = %stock.z_score,
+            price = %stock.price,
+            last_return = %stock.last_ret,
+            %dollars,
+            %limit_price,
+            "Evaluation"
+        );
         let intent = PositionIntent::builder(
             "jump-diffusion",
             stock.ticker.clone(),
