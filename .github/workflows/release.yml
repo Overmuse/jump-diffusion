@@ -18,7 +18,7 @@ jobs:
           file: Cargo.toml
           field: package.version
       - name: Set tag env variable
-        run: echo IMAGE_TAG=v${{steps.read_toml.outputs.package_version}} >> $GITHUB_ENV
+        run: echo IMAGE_TAG=v${{steps.read_toml.outputs.value}} >> $GITHUB_ENV
       - uses: ncipollo/release-action@v1
         continue-on-error: true
         with:
