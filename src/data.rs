@@ -40,7 +40,7 @@ async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDat
         Ok(Data {
             ticker: ticker.to_string(),
             log_returns,
-            current_price: snapshot.ticker.last_trade.p,
+            current_price: today.c,
         })
     } else {
         Err(anyhow!("Missing data"))

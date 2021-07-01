@@ -18,3 +18,16 @@ pub fn find_jump(y: &[f64]) -> (usize, f64) {
             }
         })
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_find_jump() {
+        let y = vec![0.1, -0.1, 0.2, -0.3];
+        let (pos, size) = find_jump(&y);
+        assert_eq!(pos, 3);
+        assert_eq!(size, -0.3)
+    }
+}

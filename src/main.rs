@@ -77,9 +77,12 @@ async fn main() -> Result<()> {
         .await
         .context("Failed to get previous close")?;
 
-    let datetime = Utc.timestamp(res.results[0].t as i64 / 1000, 0);
+    let last_trading_date = Utc
+        .timestamp(res.results[0].t as i64 / 1000, 0)
+        .naive_utc()
+        .date();
     debug!("Downloading data");
-    let data = download_data(&client, &tickers, datetime.naive_utc().date()).await;
+    let data = download_data(&client, &tickers, last_trading_date).await;
 
     let data: Vec<Data> = data
         .into_iter()
