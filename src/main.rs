@@ -81,6 +81,7 @@ async fn main() -> Result<()> {
         .timestamp(res.results[0].t as i64 / 1000, 0)
         .naive_utc()
         .date();
+    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
     debug!("Downloading data");
     let data = download_data(&client, &tickers, last_trading_date).await;
 
