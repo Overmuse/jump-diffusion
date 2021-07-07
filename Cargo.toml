@@ -1,6 +1,6 @@
 [package]
 name = "jump-diffusion"
-version = "0.7.6"
+version = "0.7.7"
 authors = ["Sebastian Rollen <seb@overmu.se>"]
 edition = "2018"
 

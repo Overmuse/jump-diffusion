@@ -27,12 +27,11 @@ async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDat
         .await?;
     let snapshot = client.send(GetTickerSnapshot(ticker)).await?;
     if let Some(res) = agg.results {
-        let today = snapshot.ticker.day;
         let prices = res
             .iter()
             .filter(|x| x.is_open())
             .map(|x| x.c)
-            .chain(std::iter::once(today.o));
+            .chain(std::iter::once(snapshot.ticker.minute.c));
         let log_returns = prices
             .tuple_windows()
             .map(|(p1, p2)| (p2.ln() - p1.ln()).to_f64().unwrap())
@@ -40,7 +39,7 @@ async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDat
         Ok(Data {
             ticker: ticker.to_string(),
             log_returns,
-            current_price: today.c,
+            current_price: snapshot.ticker.minute.c,
         })
     } else {
         Err(anyhow!("Missing data"))
