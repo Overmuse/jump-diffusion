@@ -502,7 +502,7 @@ dependencies = [
 
 [[package]]
 name = "jump-diffusion"
-version = "0.7.7"
+version = "0.7.8"
 dependencies = [
  "anyhow",
  "chrono",
@@ -513,7 +513,6 @@ dependencies = [
  "itertools",
  "kafka-settings",
  "polygon",
- "position-intents",
  "rdkafka",
  "rust_decimal",
  "serde 1.0.126",
@@ -522,6 +521,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "trading-base",
 ]
 
 [[package]]
@@ -904,19 +904,6 @@ dependencies = [
  "serde_repr",
  "thiserror",
  "tracing",
-]
-
-[[package]]
-name = "position-intents"
-version = "0.6.0"
-source = "git+ssh://git@github.com/Overmuse/position-intents?tag=v0.6.0#7296eaaeb8d4ed3da04df507ef1efc1cee8425df"
-dependencies = [
- "chrono",
- "rust_decimal",
- "serde 1.0.126",
- "serde_json",
- "thiserror",
- "uuid",
 ]
 
 [[package]]
@@ -1564,6 +1551,18 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
+]
+
+[[package]]
+name = "trading-base"
+version = "0.1.0"
+source = "git+ssh://git@github.com/Overmuse/trading-base?tag=v0.1.0#a082d3e94fffb10104c0bb4124428fccec439f47"
+dependencies = [
+ "chrono",
+ "rust_decimal",
+ "serde 1.0.126",
+ "thiserror",
+ "uuid",
 ]
 
 [[package]]

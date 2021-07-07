@@ -3,11 +3,11 @@ use chrono::{Duration, Local, NaiveTime, TimeZone, Utc};
 use chrono_tz::US::Eastern;
 use kafka_settings::producer;
 use polygon::rest::{Client, GetPreviousClose};
-use position_intents::{AmountSpec, PositionIntent};
 use rdkafka::producer::FutureRecord;
 use rust_decimal::prelude::*;
 use tracing::{debug, error, info, subscriber::set_global_default};
 use tracing_subscriber::EnvFilter;
+use trading_base::{AmountSpec, PositionIntent};
 
 mod aggregates;
 mod data;
