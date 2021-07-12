@@ -27,6 +27,9 @@ async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDat
         .await?;
     let snapshot = client.send(GetTickerSnapshot(ticker)).await?;
     if let Some(res) = agg.results {
+        if snapshot.ticker.minute.c.is_zero() {
+            return Err(anyhow!("Zero price for ticker {}", ticker));
+        };
         let prices = res
             .iter()
             .filter(|x| x.is_open())
