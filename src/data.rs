@@ -1,8 +1,9 @@
 use anyhow::{anyhow, Result};
 use chrono::NaiveDate;
+use datastore_client::{Client as DatastoreClient, GetLastOpen};
 use futures::prelude::*;
 use itertools::Itertools;
-use polygon::rest::{Client, GetAggregate, GetTickerSnapshot, SortOrder, Timespan};
+use polygon::rest::{Client as PolygonClient, GetAggregate, SortOrder, Timespan};
 use rust_decimal::prelude::*;
 use tracing::debug;
 
@@ -15,8 +16,13 @@ pub struct Data {
     pub current_price: Decimal,
 }
 
-async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDate) -> Result<Data> {
-    let agg = client
+async fn download_ticker_data(
+    polygon_client: &PolygonClient<'_>,
+    datastore_client: &DatastoreClient<'_>,
+    ticker: &str,
+    date: &NaiveDate,
+) -> Result<Data> {
+    let agg = polygon_client
         .send(
             GetAggregate::new(ticker, *date, *date)
                 .multiplier(1)
@@ -25,16 +31,19 @@ async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDat
                 .sort(SortOrder::Asc),
         )
         .await?;
-    let snapshot = client.send(GetTickerSnapshot(ticker)).await?;
+    let open = datastore_client
+        .send(GetLastOpen::new(ticker.to_string()))
+        .await?;
     if let Some(res) = agg.results {
-        if snapshot.ticker.minute.c.is_zero() {
-            return Err(anyhow!("Zero price for ticker {}", ticker));
+        if open.is_none() {
+            return Err(anyhow!("Missing open price for ticker {}", ticker));
         };
+        let open = Decimal::from_f64(open.expect("Guaranteed to exist")).unwrap();
         let prices = res
             .iter()
             .filter(|x| x.is_open())
             .map(|x| x.c)
-            .chain(std::iter::once(snapshot.ticker.minute.c));
+            .chain(std::iter::once(open));
         let log_returns = prices
             .tuple_windows()
             .map(|(p1, p2)| (p2.ln() - p1.ln()).to_f64().unwrap())
@@ -42,7 +51,7 @@ async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDat
         Ok(Data {
             ticker: ticker.to_string(),
             log_returns,
-            current_price: snapshot.ticker.minute.c,
+            current_price: open,
         })
     } else {
         Err(anyhow!("Missing data"))
@@ -50,13 +59,14 @@ async fn download_ticker_data(client: &Client<'_>, ticker: &str, date: &NaiveDat
 }
 
 pub async fn download_data(
-    client: &Client<'_>,
+    polygon_client: &PolygonClient<'_>,
+    datastore_client: &DatastoreClient<'_>,
     tickers: &[String],
     date: NaiveDate,
 ) -> Vec<Result<Data>> {
     debug!("Beginning data download");
     stream::iter(tickers)
-        .map(|ticker| download_ticker_data(client, ticker, &date))
+        .map(|ticker| download_ticker_data(polygon_client, datastore_client, ticker, &date))
         .buffered(100)
         .collect()
         .await
