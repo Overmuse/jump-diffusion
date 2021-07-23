@@ -8,7 +8,7 @@ pub trait JumpDiffusionAggregate {
 
 impl JumpDiffusionAggregate for Aggregate {
     fn is_open(&self) -> bool {
-        let datetime = Utc.timestamp(self.t as i64 / 1000, 0);
+        let datetime = self.t;
         let zoned = datetime.with_timezone(&New_York);
         (zoned.time() >= NaiveTime::from_hms(9, 30, 00))
             && (zoned.time() < NaiveTime::from_hms(16, 00, 00))
@@ -29,7 +29,7 @@ mod test {
             c: Decimal::new(100, 2),
             v: Decimal::new(100, 2),
             vw: Some(Decimal::new(100, 2)),
-            t: 1620999000000,
+            t: Utc.ymd(2021, 5, 14).and_hms(13, 30, 00),
             n: Some(100),
         };
         assert!(agg.is_open())
@@ -44,7 +44,7 @@ mod test {
             c: Decimal::new(100, 2),
             v: Decimal::new(100, 2),
             vw: Some(Decimal::new(100, 2)),
-            t: 1620998999999,
+            t: Utc.ymd(2021, 5, 14).and_hms(13, 29, 59),
             n: Some(100),
         };
         assert!(!agg.is_open())
