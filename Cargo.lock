@@ -610,7 +610,7 @@ dependencies = [
 
 [[package]]
 name = "jump-diffusion"
-version = "0.7.9"
+version = "0.9.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1827,8 +1827,8 @@ dependencies = [
 
 [[package]]
 name = "trading-base"
-version = "0.1.0"
-source = "git+ssh://git@github.com/Overmuse/trading-base?tag=v0.1.0#a082d3e94fffb10104c0bb4124428fccec439f47"
+version = "0.2.0"
+source = "git+ssh://git@github.com/Overmuse/trading-base?tag=v0.2.0#c5dcb43cbc7568dcf380f1cb0451e662cd96f32a"
 dependencies = [
  "chrono",
  "rust_decimal",

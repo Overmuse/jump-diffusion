@@ -8,7 +8,7 @@ use rdkafka::producer::FutureRecord;
 use rust_decimal::prelude::*;
 use tracing::{debug, error, info, subscriber::set_global_default};
 use tracing_subscriber::EnvFilter;
-use trading_base::{AmountSpec, PositionIntent};
+use trading_base::{Amount, PositionIntent};
 
 mod aggregates;
 mod data;
@@ -125,7 +125,7 @@ async fn main() -> Result<()> {
         let intent = PositionIntent::builder(
             "jump-diffusion",
             stock.ticker.clone(),
-            AmountSpec::Dollars(dollars),
+            Amount::Dollars(dollars),
         )
         .before(Utc::now() + Duration::minutes(30))
         .limit_price(limit_price)
@@ -137,7 +137,7 @@ async fn main() -> Result<()> {
             .unwrap()
             .with_timezone(&Utc);
         let close_intent =
-            PositionIntent::builder("jump-diffusion", stock.ticker.clone(), AmountSpec::Zero)
+            PositionIntent::builder("jump-diffusion", stock.ticker.clone(), Amount::Zero)
                 .after(close_time)
                 .build()?;
         for i in vec![intent, close_intent] {
